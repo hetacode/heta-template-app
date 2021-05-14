@@ -1,0 +1,62 @@
+version: "3.9"
+services:
+  redpanda:
+    image: vectorized/redpanda:latest
+    entrypoint:
+      - /usr/bin/rpk
+      - redpanda
+      - start
+      - --smp
+      - '1'
+      - --reserve-memory
+      - 0M
+      - --overprovisioned
+      - --node-id
+      - '0'
+      - --kafka-addr
+      - PLAINTEXT://0.0.0.0:29092,OUTSIDE://0.0.0.0:9092
+      - --advertise-kafka-addr
+      - PLAINTEXT://redpanda:29092,OUTSIDE://0.0.0.0:9092
+    ports:
+      - 9092:9092
+      - 29092:29092
+  kafka-ui:
+    image: obsidiandynamics/kafdrop
+    ports:
+      - 8080:9000
+    environment:
+      KAFKA_BROKERCONNECT: redpanda:29092
+      JVM_OPTS: "-Xms32M -Xmx64M"
+      SERVER_SERVLET_CONTEXTPATH: "/"
+  minio:
+    image: minio/minio
+    depends_on:
+      - redpanda
+    ports:
+      - "9000:9000"
+    entrypoint: >
+      /bin/sh -c "
+      curl https://raw.githubusercontent.com/hetacode/tiny-battleship/master/wait-for-it.sh -o wait-for-it.sh;
+      chmod +x wait-for-it.sh;
+      ./wait-for-it.sh redpanda:29092 -- /usr/bin/docker-entrypoint.sh minio server /export;
+      "
+  mc:
+    image: minio/mc
+    restart: on-failure
+    entrypoint: >
+      /bin/sh -c "
+      mc config host add minio http://minio:9000 minioadmin minioadmin;
+      mc admin config get minio notify_kafka;
+      mc admin config set minio notify_kafka:1 tls_skip_verify="off" queue_dir="" queue_limit="0" sasl="off" sasl_password="" sasl_username="" tls_client_auth="0" tls="off" client_tls_cert="" client_tls_key="" brokers="redpanda:29092" topic="minio-events-inputs";
+      mc admin config set minio notify_kafka:2 tls_skip_verify="off" queue_dir="" queue_limit="0" sasl="off" sasl_password="" sasl_username="" tls_client_auth="0" tls="off" client_tls_cert="" client_tls_key="" brokers="redpanda:29092" topic="minio-events-gen";
+      mc admin service restart minio;
+      mc mb minio/inputs;
+      mc mb minio/gen;
+      mc event add minio/inputs arn:minio:sqs::1:kafka --suffix .yaml;
+      mc event add minio/inputs arn:minio:sqs::2:kafka --suffix .html;
+      mc event list minio/inputs;
+      mc event list minio/gen;
+      "
+    depends_on:
+      - minio
+      - redpanda
