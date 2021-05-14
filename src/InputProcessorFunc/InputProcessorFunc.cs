@@ -8,6 +8,7 @@ using LibGit2Sharp;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Http;
 using Microsoft.Extensions.Logging;
+using Minio;
 
 namespace InputProcessorFunc
 {
@@ -28,10 +29,13 @@ namespace InputProcessorFunc
             if (string.IsNullOrEmpty(lastCommit))
             {
                 lastCommit = repo.Head.Tip.Tree.Sha;
-                var files = Directory.GetFiles("repos/inputs");
+
+                var storage = new MinioClient("localhost:9000", "minioadmin", "minioadmin");
+                var inputsDir = "repos/inputs";
+                var files = Directory.GetFiles(inputsDir);
                 foreach (var f in files.Where(w => w.EndsWith(".yaml")))
                 {
-                    // TODO: send to minio storage
+                    await storage.PutObjectAsync("inputs", Path.GetFileName(f), f);
                 }
             }
             else // Changes from last checkout
