@@ -28,6 +28,10 @@ services:
       KAFKA_BROKERCONNECT: redpanda:29092
       JVM_OPTS: "-Xms32M -Xmx64M"
       SERVER_SERVLET_CONTEXTPATH: "/"
+  redis:
+    image: redis:6.2.3-alpine
+    ports:
+      - 6379:6379
   minio:
     image: minio/minio
     depends_on:
