@@ -1,0 +1,6 @@
+template: profile-page
+data:
+  first_name: Random
+  last_name: Randomowicz
+  age: 34
+  profession: IT-nobody
