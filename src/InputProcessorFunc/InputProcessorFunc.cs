@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -7,15 +8,20 @@ using System.Threading.Tasks;
 using LibGit2Sharp;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Http;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Minio;
 
 namespace InputProcessorFunc
 {
-    public static class InputProcessorFunc
+    public class InputProcessorFunc
     {
+        private readonly string MinioEndpoint = Environment.GetEnvironmentVariable("MINIO_ENDPOINT");
+        private readonly string MinioAccessKey = Environment.GetEnvironmentVariable("MINIO_ACCESSKEY");
+        private readonly string MinioSecretKey = Environment.GetEnvironmentVariable("MINIO_SECRETKEY");
+
         [Function("InputProcessorFunc")]
-        public static async Task<HttpResponseData> Run([HttpTrigger(AuthorizationLevel.Function, "get", "post")] HttpRequestData req,
+        public async Task<HttpResponseData> Run([HttpTrigger(AuthorizationLevel.Anonymous, "get", "post")] HttpRequestData req,
             FunctionContext executionContext)
         {
             var logger = executionContext.GetLogger("InputProcessorFunc");
@@ -30,7 +36,7 @@ namespace InputProcessorFunc
             {
                 lastCommit = repo.Head.Tip.Tree.Sha;
 
-                var storage = new MinioClient("localhost:9000", "minioadmin", "minioadmin");
+                var storage = new MinioClient(MinioEndpoint, MinioAccessKey, MinioSecretKey);
                 var inputsDir = "repos/inputs";
                 var files = Directory.GetFiles(inputsDir);
                 foreach (var f in files.Where(w => w.EndsWith(".yaml")))

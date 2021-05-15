@@ -64,3 +64,15 @@ services:
     depends_on:
       - minio
       - redpanda
+
+  input-processor-func:
+    build:
+      context: src/InputProcessorFunc
+      dockerfile: Dockerfile
+    image: input-processor-func
+    ports:
+      - 7000:80
+    environment:
+      - MINIO_ENDPOINT=minio:9000
+      - MINIO_ACCESSKEY=minioadmin
+      - MINIO_SECRETKEY=minioadmin

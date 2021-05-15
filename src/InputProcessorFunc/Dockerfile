@@ -1,5 +1,9 @@
 FROM mcr.microsoft.com/dotnet/sdk:5.0 AS installer-env
-
+RUN wget https://packages.microsoft.com/config/ubuntu/20.04/packages-microsoft-prod.deb \
+    && dpkg -i packages-microsoft-prod.deb \
+    && apt update \
+    && apt install apt-transport-https \ 
+    && apt install dotnet-sdk-3.1 -y
 COPY . /src/dotnet-function-app
 RUN cd /src/dotnet-function-app && \
     mkdir -p /home/site/wwwroot && \
