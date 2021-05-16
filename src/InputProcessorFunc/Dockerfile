@@ -13,6 +13,7 @@ RUN cd /src/dotnet-function-app && \
 # FROM mcr.microsoft.com/azure-functions/dotnet-isolated:3.0-dotnet-isolated5.0-appservice
 FROM mcr.microsoft.com/azure-functions/dotnet-isolated:3.0-dotnet-isolated5.0
 ENV AzureWebJobsScriptRoot=/home/site/wwwroot \
-    AzureFunctionsJobHost__Logging__Console__IsEnabled=true
+    AzureFunctionsJobHost__Logging__Console__IsEnabled=true \
+    LD_LIBRARY_PATH=/home/site/wwwroot/runtimes/ubuntu.18.04-x64/native
 
 COPY --from=installer-env ["/home/site/wwwroot", "/home/site/wwwroot"]
