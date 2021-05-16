@@ -20,11 +20,11 @@ namespace InputProcessorFunc
         private readonly string MinioAccessKey = Environment.GetEnvironmentVariable("MINIO_ACCESSKEY");
         private readonly string MinioSecretKey = Environment.GetEnvironmentVariable("MINIO_SECRETKEY");
 
-        [Function("InputProcessorFunc")]
+        [Function("RepositoryProcessorFunc")]
         public async Task<HttpResponseData> Run([HttpTrigger(AuthorizationLevel.Anonymous, "get", "post")] HttpRequestData req,
             FunctionContext executionContext)
         {
-            var logger = executionContext.GetLogger("InputProcessorFunc");
+            var logger = executionContext.GetLogger("RepositoryProcessorFunc");
             logger.LogInformation("start");
 
             var lastCommit = "";

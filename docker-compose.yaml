@@ -65,11 +65,11 @@ services:
       - minio
       - redpanda
 
-  input-processor-func:
+  repository-processor-func:
     build:
-      context: src/InputProcessorFunc
+      context: src/RepositoryProcessorFunc
       dockerfile: Dockerfile
-    image: input-processor-func
+    image: repository-processor-func
     ports:
       - 7000:80
     environment:
