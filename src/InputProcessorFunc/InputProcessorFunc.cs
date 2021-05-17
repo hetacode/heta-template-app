@@ -43,24 +43,7 @@ namespace InputProcessorFunc
                     break;
                 case "s3:ObjectCreated:Put":
                     {
-                        logger.LogInformation($"added {minioEvent.Key} {MinioEndpoint}");
-                        var storage = new MinioClient(MinioEndpoint, MinioAccessKey, MinioSecretKey);
-                        var bucketName = minioEvent.Key.Split("/").FirstOrDefault();
-                        var objectName = minioEvent.Key[(bucketName.Length + 1)..];
-
-                        var ys = new YamlDotNet.Serialization.Deserializer();
-                        await storage.GetObjectAsync(bucketName, objectName, s =>
-                        {
-                            using var tr = new StreamReader(s);
-                            var des = ys.Deserialize<Dictionary<string, object>>(tr);
-                            if (des.ContainsKey("template"))
-                            {
-                                var outEvent = new InputToProcessEvent(bucketName, objectName);
-                                _kafkaProducer.Produce($"input-to-process-{des["template"]}", new Message<Null, string> { Value = JsonSerializer.Serialize(outEvent) });
-                                return;
-                            }
-                        });
-
+                        await InputObjectCreated(logger, minioEvent);
 
                         break;
                     }
@@ -68,6 +51,27 @@ namespace InputProcessorFunc
                     logger.LogInformation($"no executor for {minioEvent.EventName}");
                     break;
             }
+        }
+
+        private async Task InputObjectCreated(ILogger logger, S3ObjectEvent minioEvent)
+        {
+            logger.LogInformation($"added {minioEvent.Key} {MinioEndpoint}");
+            var storage = new MinioClient(MinioEndpoint, MinioAccessKey, MinioSecretKey);
+            var bucketName = minioEvent.Key.Split("/").FirstOrDefault();
+            var objectName = minioEvent.Key[(bucketName.Length + 1)..];
+
+            var ys = new YamlDotNet.Serialization.Deserializer();
+            await storage.GetObjectAsync(bucketName, objectName, s =>
+            {
+                using var tr = new StreamReader(s);
+                var des = ys.Deserialize<Dictionary<string, object>>(tr);
+                if (des.ContainsKey("template"))
+                {
+                    var outEvent = new InputToProcessEvent(bucketName, objectName);
+                    _kafkaProducer.Produce($"input-to-process-{des["template"]}", new Message<Null, string> { Value = JsonSerializer.Serialize(outEvent) });
+                    return;
+                }
+            });
         }
     }
 
