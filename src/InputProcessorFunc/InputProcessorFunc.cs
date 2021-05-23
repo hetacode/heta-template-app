@@ -28,7 +28,7 @@ namespace InputProcessorFunc
 
         [Function("InputProcessorFunc")]
         public async Task Run(
-            [KafkaTrigger("localhost:9092", "minio-events-inputs", ConsumerGroup="input-processor-group")]
+            [KafkaTrigger("KAFKA_BROKERS", "minio-events-inputs", ConsumerGroup="input-processor-group")]
             KafkaMessage ev,
             FunctionContext executionContext)
         {

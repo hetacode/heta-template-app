@@ -76,3 +76,13 @@ services:
       - MINIO_ENDPOINT=minio:9000
       - MINIO_ACCESSKEY=minioadmin
       - MINIO_SECRETKEY=minioadmin
+  input-processor-func:
+    build:
+      context: .
+      dockerfile: src/InputProcessorFunc/Dockerfile
+    image: input-processor-func
+    environment:
+      - KAFKA_BROKERS=redpanda:29092
+      - MINIO_ENDPOINT=minio:9000
+      - MINIO_ACCESSKEY=minioadmin
+      - MINIO_SECRETKEY=minioadmin
