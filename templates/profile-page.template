@@ -1,0 +1,13 @@
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+
+  <title>Profile page</title>
+</head>
+
+<body>
+<h1>{{first_name}} {{last_name}}</h1>
+<h3>Age: {{age}}</h3>
+<h3>Profession: {{profession}}<h3>
+</body>
+</html>
