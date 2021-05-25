@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
+using Commons;
 using Commons.Events;
 using Confluent.Kafka;
 using Microsoft.Azure.Functions.Worker;
@@ -75,6 +76,5 @@ namespace InputProcessorFunc
         }
     }
 
-    public record KafkaMessage(int Offset, int Partition, string Topic, DateTime Timestamp, string Value);
     public record S3ObjectEvent(string EventName, string Key);
 }
