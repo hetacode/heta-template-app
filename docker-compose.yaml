@@ -1,5 +1,11 @@
 version: "3.9"
 services:
+  postgres:
+    image: postgres:13.3-alpine
+    environment:
+      - POSTGRES_PASSWORD=postgrespass
+    ports:
+      - 5432:5432
   redpanda:
     image: vectorized/redpanda:latest
     entrypoint:

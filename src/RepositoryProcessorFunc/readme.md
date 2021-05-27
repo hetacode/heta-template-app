@@ -1,3 +1,14 @@
+# Prerequisite
+## Generate db models
+
+```console
+# Install EF CLI tools 
+dotnet tool install --global dotnet-ef
+
+# Generate model
+dotnet ef dbcontext scaffold "host=localhost;database=repository-func-commits-history;username=postgres;password=postgrespass" Npgsql.EntityFrameworkCore.PostgreSQL -o Models -c RepositoryFuncDbContext
+```
+
 # Run function
 
 ## gitlib2 dependency
