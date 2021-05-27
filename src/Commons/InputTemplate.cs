@@ -1,4 +1,8 @@
 namespace Commons
 {
-    public record InputTemplate<T>(string template, T data);
+    public class InputTemplate<T>
+    {
+        public string template { get;set;}
+        public T data { get;set;}
+    }
 }

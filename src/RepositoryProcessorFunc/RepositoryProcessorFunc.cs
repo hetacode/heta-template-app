@@ -29,6 +29,10 @@ namespace InputProcessorFunc
 
             var lastCommit = "";
 
+            if (Directory.Exists("repos"))
+            {
+                Directory.Delete("repos", true);
+            }
             Repository.Clone("https://github.com/hetacode/heta-template-app.git", "repos/");
             using var repo = new Repository("repos/.git");
             // When first checkout

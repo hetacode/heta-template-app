@@ -29,6 +29,10 @@ namespace TemplateProcessorFunc
 
             var lastCommit = "";
 
+            if (Directory.Exists("repos"))
+            {
+                Directory.Delete("repos", true);
+            }
             Repository.Clone("https://github.com/hetacode/heta-template-app.git", "repos/");
             using var repo = new Repository("repos/.git");
             // When first checkout
@@ -56,7 +60,7 @@ namespace TemplateProcessorFunc
 
             var response = req.CreateResponse(HttpStatusCode.OK);
 
-            logger.LogInformation("start TemplateProcessorFunc");
+            logger.LogInformation("end TemplateProcessorFunc");
 
 
             return response;

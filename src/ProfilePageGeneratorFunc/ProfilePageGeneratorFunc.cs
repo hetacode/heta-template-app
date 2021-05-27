@@ -37,7 +37,7 @@ namespace ProfilePageGeneratorFunc
 
             var storageClient = new MinioClient(MinioEndpoint, MinioAccessKey, MinioSecretKey);
             // 1, Download input file from S3 bucket (minio)
-            var input = await DownloadInputData(storageClient, msg.bucketName, msg.objectName);
+            var input = await DownloadInputData(logger, storageClient, msg.bucketName, msg.objectName);
             logger.LogInformation($"processing {input.template} input");
             // 2. Download html template from s3 repo (should sync by other periodic function)
             var template = await GetTemplate(input.template);
@@ -54,22 +54,25 @@ namespace ProfilePageGeneratorFunc
             var bytes = Encoding.UTF8.GetBytes(output);
             using var ms = new MemoryStream();
             await ms.WriteAsync(bytes, 0, bytes.Length, CancellationToken.None);
-            var currentTime = DateTime.UnixEpoch.Millisecond;
-            await storage.PutObjectAsync("outputs", $"{namePrefix}_{currentTime}.html", ms,ms.Length, contentType: "text/html");
+            ms.Seek(0, SeekOrigin.Begin);
+            var currentTime = DateTimeOffset.Now.ToUnixTimeMilliseconds();
+            await storage.PutObjectAsync("outputs", $"{namePrefix}_{currentTime}.html", ms, ms.Length, contentType: "text/html");
         }
 
-        public async Task<InputTemplate<ProfilePageTemplateData>> DownloadInputData(MinioClient storage, string bucketName, string objectName)
+        public async Task<InputTemplate<ProfilePageTemplateData>> DownloadInputData(ILogger logger, MinioClient storage, string bucketName, string objectName)
         {
             using var ms = new MemoryStream();
             await storage.GetObjectAsync(bucketName, objectName, async s =>
                 {
                     await s.CopyToAsync(ms);
                 });
+            ms.Seek(0, SeekOrigin.Begin);
 
+            using var sr = new StreamReader(ms);
             var yamlDeserializer = new YamlDotNet.Serialization.Deserializer();
-            var profilePageData = yamlDeserializer.Deserialize<InputTemplate<ProfilePageTemplateData>>(new StreamReader(ms));
+            var profilePageData = yamlDeserializer.Deserialize<InputTemplate<ProfilePageTemplateData>>(sr);
 
-            throw new Exception("unimplemented");
+            return profilePageData;
         }
 
         public async Task<string> GetTemplate(string templateName)
@@ -80,6 +83,7 @@ namespace ProfilePageGeneratorFunc
                 {
                     await s.CopyToAsync(ms);
                 });
+            ms.Seek(0, SeekOrigin.Begin);
             using var sr = new StreamReader(ms);
             var template = sr.ReadToEnd();
 
@@ -90,7 +94,7 @@ namespace ProfilePageGeneratorFunc
         {
             template = template.Replace("{{first_name}}", input.first_name);
             template = template.Replace("{{last_name}}", input.last_name);
-            template = template.Replace("{{age_name}}", input.age.ToString());
+            template = template.Replace("{{age}}", input.age.ToString());
             template = template.Replace("{{profession}}", input.profession);
             return template;
         }
