@@ -77,11 +77,32 @@ services:
       - MINIO_ENDPOINT=minio:9000
       - MINIO_ACCESSKEY=minioadmin
       - MINIO_SECRETKEY=minioadmin
+  template-processor-func:
+    build:
+      context: src/TemplateProcessorFunc
+      dockerfile: Dockerfile
+    image: template-processor-func
+    ports:
+      - 7001:80
+    environment:
+      - MINIO_ENDPOINT=minio:9000
+      - MINIO_ACCESSKEY=minioadmin
+      - MINIO_SECRETKEY=minioadmin
   input-processor-func:
     build:
       context: .
       dockerfile: src/InputProcessorFunc/Dockerfile
     image: input-processor-func
+    environment:
+      - KAFKA_BROKERS=redpanda:29092
+      - MINIO_ENDPOINT=minio:9000
+      - MINIO_ACCESSKEY=minioadmin
+      - MINIO_SECRETKEY=minioadmin
+  profile-page-generator-func:
+    build:
+      context: .
+      dockerfile: src/ProfilePageGeneratorFunc/Dockerfile
+    image: profile-page-generator-func
     environment:
       - KAFKA_BROKERS=redpanda:29092
       - MINIO_ENDPOINT=minio:9000
