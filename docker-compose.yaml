@@ -52,14 +52,15 @@ services:
       mc config host add minio http://minio:9000 minioadmin minioadmin;
       mc admin config get minio notify_kafka;
       mc admin config set minio notify_kafka:1 tls_skip_verify="off" queue_dir="" queue_limit="0" sasl="off" sasl_password="" sasl_username="" tls_client_auth="0" tls="off" client_tls_cert="" client_tls_key="" brokers="redpanda:29092" topic="minio-events-inputs";
-      mc admin config set minio notify_kafka:2 tls_skip_verify="off" queue_dir="" queue_limit="0" sasl="off" sasl_password="" sasl_username="" tls_client_auth="0" tls="off" client_tls_cert="" client_tls_key="" brokers="redpanda:29092" topic="minio-events-gen";
+      mc admin config set minio notify_kafka:2 tls_skip_verify="off" queue_dir="" queue_limit="0" sasl="off" sasl_password="" sasl_username="" tls_client_auth="0" tls="off" client_tls_cert="" client_tls_key="" brokers="redpanda:29092" topic="minio-events-outputs";
       mc admin service restart minio;
       mc mb minio/inputs;
-      mc mb minio/gen;
+      mc mb minio/outputs;
+      mc mb minio/templates;
       mc event add minio/inputs arn:minio:sqs::1:kafka --suffix .yaml;
-      mc event add minio/inputs arn:minio:sqs::2:kafka --suffix .html;
+      mc event add minio/outputs arn:minio:sqs::2:kafka --suffix .*;
       mc event list minio/inputs;
-      mc event list minio/gen;
+      mc event list minio/outputs;
       "
     depends_on:
       - minio
