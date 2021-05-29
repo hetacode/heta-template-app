@@ -27,7 +27,7 @@ namespace RepositoryProcessorFunc
         private RepositoryFuncDbContext _context;
 
         public RepositoryProcessorFunc(RepositoryFuncDbContext context)
-        => _context = context;
+            => _context = context;
 
 
         [Function("RepositoryProcessorFunc")]
@@ -37,9 +37,10 @@ namespace RepositoryProcessorFunc
             var logger = executionContext.GetLogger("RepositoryProcessorFunc");
             logger.LogInformation("start");
 
+            using var trans = await _context.Database.BeginTransactionAsync();
             using var sha = SHA256.Create();
-            var repoHash = GetHash(sha, CodeRepository);
-            var lastCommit = _context.Commits.LastOrDefault(l => l.RepoHash == repoHash)?.CommitHash ?? "";
+            var repoHash = GetHash(sha, CodeRepository.Trim());
+            var lastCommit = _context.Commits.OrderByDescending(o => o.CreatedAt).FirstOrDefault(l => l.RepoHash == repoHash)?.CommitHash ?? "";
 
             if (Directory.Exists("repos"))
             {
@@ -59,6 +60,8 @@ namespace RepositoryProcessorFunc
                 {
                     await storage.PutObjectAsync("inputs", Path.GetFileName(f), f);
                 }
+
+                await _context.Commits.AddAsync(new Models.Commit { RepoHash = repoHash, CommitHash = lastCommit, CreatedAt = DateTime.Now });
             }
             else // Changes from last checkout
             {
@@ -68,8 +71,9 @@ namespace RepositoryProcessorFunc
                     // TOOD: take only new files paths: inputs/*
                 }
             }
-
-
+            await _context.SaveChangesAsync();
+            await trans.CommitAsync();
+            
             var response = req.CreateResponse(HttpStatusCode.OK);
             return response;
         }

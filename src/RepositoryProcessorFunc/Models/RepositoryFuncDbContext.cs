@@ -34,17 +34,21 @@ namespace RepositoryProcessorFunc.Models
 
             modelBuilder.Entity<Commit>(entity =>
             {
-                entity.HasNoKey();
+                entity.HasKey(e => e.RepoHash)
+                    .HasName("commits_pkey");
 
                 entity.ToTable("commits");
 
+                entity.Property(e => e.RepoHash)
+                    .HasMaxLength(65)
+                    .HasColumnName("repo_hash");
+
                 entity.Property(e => e.CommitHash)
+                    .IsRequired()
                     .HasMaxLength(50)
                     .HasColumnName("commit_hash");
 
-                entity.Property(e => e.RepoHash)
-                    .HasMaxLength(50)
-                    .HasColumnName("repo_hash");
+                entity.Property(e => e.CreatedAt).HasColumnName("created_at");
             });
 
             OnModelCreatingPartial(modelBuilder);
