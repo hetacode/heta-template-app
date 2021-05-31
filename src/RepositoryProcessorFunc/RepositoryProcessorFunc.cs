@@ -5,6 +5,7 @@ using System.Linq;
 using System.Net;
 using System.Security.Cryptography;
 using System.Text;
+using System.Text.Json;
 using System.Threading.Tasks;
 using LibGit2Sharp;
 using Microsoft.Azure.Functions.Worker;
@@ -17,11 +18,12 @@ namespace RepositoryProcessorFunc
 {
     public class RepositoryProcessorFunc
     {
+        private const string BucketName = "inputs";
         private readonly string MinioEndpoint = Environment.GetEnvironmentVariable("MINIO_ENDPOINT");
         private readonly string MinioAccessKey = Environment.GetEnvironmentVariable("MINIO_ACCESSKEY");
         private readonly string MinioSecretKey = Environment.GetEnvironmentVariable("MINIO_SECRETKEY");
 
-        // https://github.com/hetacode/heta-template-app.git
+        // https://github.com/hetacode/heta-template-app-data.git
         private readonly string CodeRepository = Environment.GetEnvironmentVariable("CODE_REPOSITORY");
 
         private RepositoryFuncDbContext _context;
@@ -46,34 +48,65 @@ namespace RepositoryProcessorFunc
             {
                 Directory.Delete("repos", true);
             }
-            Repository.Clone(CodeRepository, "repos/");
+            Repository.Clone(CodeRepository, "repos/", new CloneOptions { BranchName = "master" });
             using var repo = new Repository("repos/.git");
+
+            var storage = new MinioClient(MinioEndpoint, MinioAccessKey, MinioSecretKey);
             // When first checkout
             if (string.IsNullOrEmpty(lastCommit))
             {
-                lastCommit = repo.Head.Tip.Tree.Sha;
+                lastCommit = repo.Head.Tip.Sha;
 
-                var storage = new MinioClient(MinioEndpoint, MinioAccessKey, MinioSecretKey);
+
                 var inputsDir = "repos/inputs";
                 var files = Directory.GetFiles(inputsDir);
                 foreach (var f in files.Where(w => w.EndsWith(".yaml")))
                 {
-                    await storage.PutObjectAsync("inputs", Path.GetFileName(f), f);
+                    await storage.PutObjectAsync(BucketName, Path.GetFileName(f), f);
                 }
 
                 await _context.Commits.AddAsync(new Models.Commit { RepoHash = repoHash, CommitHash = lastCommit, CreatedAt = DateTime.Now });
             }
             else // Changes from last checkout
             {
-                foreach (var c in repo.Diff.Compare<TreeChanges>(repo.Lookup<Tree>(lastCommit), repo.Head.Tip.Tree))
+                var commit = repo.Commits.FirstOrDefault(f => f.Sha == lastCommit);
+                var newestCommitHash = repo.Head.Tip.Sha;
+                var diffs = repo.Diff.Compare<TreeChanges>(commit.Tree, repo.Head.Tip.Tree);
+                foreach (var c in diffs)
                 {
-                    logger.LogInformation($"change: {c.OldPath} - {c.Path}");
-                    // TOOD: take only new files paths: inputs/*
+                    if (!c.Path.StartsWith("inputs"))
+                    {
+                        logger.LogInformation($"wrong path: {c.Path}");
+                        continue;
+                    }
+
+                    switch (c.Status)
+                    {
+                        case ChangeKind.Modified:
+                        case ChangeKind.Added:
+                            logger.LogInformation($"{c.Status.ToString()} path: {c.Path}");
+                            await storage.PutObjectAsync(BucketName, Path.GetFileName(c.Path), Path.Combine("repos", c.Path));
+                            break;
+                        case ChangeKind.Deleted:
+                            logger.LogInformation($"{c.Status.ToString()} path: {c.Path}");
+                            await storage.RemoveObjectAsync(BucketName, Path.GetFileName(c.Path));
+                            break;
+                        case ChangeKind.Renamed:
+                            logger.LogInformation($"{c.Status.ToString()} old path: {c.OldPath} | new path: {c.Path}");
+                            await storage.RemoveObjectAsync(BucketName, Path.GetFileName(c.OldPath));
+                            await storage.PutObjectAsync(BucketName, Path.GetFileName(c.Path), Path.Combine("repos", c.Path));
+                            break;
+                        case ChangeKind.Unmodified:
+                            break;
+                        default:
+                            throw new Exception($"Unimplemented status {c.Status} - commit: {newestCommitHash}");
+                    }
                 }
+                await _context.Commits.AddAsync(new Models.Commit { RepoHash = repoHash, CommitHash = newestCommitHash, CreatedAt = DateTime.Now });
             }
             await _context.SaveChangesAsync();
             await trans.CommitAsync();
-            
+
             var response = req.CreateResponse(HttpStatusCode.OK);
             return response;
         }

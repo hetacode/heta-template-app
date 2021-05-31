@@ -33,7 +33,7 @@ namespace TemplateProcessorFunc
             {
                 Directory.Delete("repos", true);
             }
-            Repository.Clone("https://github.com/hetacode/heta-template-app.git", "repos/");
+            Repository.Clone("https://github.com/hetacode/heta-template-app-data.git", "repos/");
             using var repo = new Repository("repos/.git");
             // When first checkout
             if (string.IsNullOrEmpty(lastCommit))
