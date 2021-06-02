@@ -2,18 +2,17 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Azure.Functions.Worker.Configuration;
+using Microsoft.Extensions.DependencyInjection;
+using TemplateProcessorFunc.Models;
+using Microsoft.EntityFrameworkCore;
+using System;
 
-namespace TemplateProcessorFunc
-{
-    public class Program
+var host = new HostBuilder()
+    .ConfigureFunctionsWorkerDefaults()
+    .ConfigureServices(s =>
     {
-        public static void Main()
-        {
-            var host = new HostBuilder()
-                .ConfigureFunctionsWorkerDefaults()
-                .Build();
+        s.AddDbContext<TemplateFuncDbContext>(o => o.UseNpgsql(Environment.GetEnvironmentVariable("POSTGRES_CONNECTIONSTRING")));
+    })
+    .Build();
 
-            host.Run();
-        }
-    }
-}
+host.Run();

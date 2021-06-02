@@ -7,6 +7,7 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
+using Commons.Utils;
 using LibGit2Sharp;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Http;
@@ -41,7 +42,7 @@ namespace RepositoryProcessorFunc
 
             using var trans = await _context.Database.BeginTransactionAsync();
             using var sha = SHA256.Create();
-            var repoHash = GetHash(sha, CodeRepository.Trim());
+            var repoHash = HashUtils.GetHash(sha, CodeRepository.Trim());
             var lastCommit = _context.Commits.OrderByDescending(o => o.CreatedAt).FirstOrDefault(l => l.RepoHash == repoHash)?.CommitHash ?? "";
 
             if (Directory.Exists("repos"))
@@ -111,25 +112,5 @@ namespace RepositoryProcessorFunc
             return response;
         }
 
-        private static string GetHash(HashAlgorithm hashAlgorithm, string input)
-        {
-
-            // Convert the input string to a byte array and compute the hash.
-            byte[] data = hashAlgorithm.ComputeHash(Encoding.UTF8.GetBytes(input));
-
-            // Create a new Stringbuilder to collect the bytes
-            // and create a string.
-            var sBuilder = new StringBuilder();
-
-            // Loop through each byte of the hashed data
-            // and format each one as a hexadecimal string.
-            for (int i = 0; i < data.Length; i++)
-            {
-                sBuilder.Append(data[i].ToString("x2"));
-            }
-
-            // Return the hexadecimal string.
-            return sBuilder.ToString();
-        }
     }
 }

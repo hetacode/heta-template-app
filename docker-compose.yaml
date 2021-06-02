@@ -6,6 +6,9 @@ services:
       - POSTGRES_PASSWORD=postgrespass
     ports:
       - 5432:5432
+    volumes:
+      - ./scripts/repository-func-commits-history-db.sql:/docker-entrypoint-initdb.d/repository-db.sql
+      - ./scripts/template-func-commits-history-db.sql:/docker-entrypoint-initdb.d/template-db.sql
   redpanda:
     image: vectorized/redpanda:latest
     entrypoint:
@@ -74,8 +77,8 @@ services:
 
   repository-processor-func:
     build:
-      context: src/RepositoryProcessorFunc
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: src/RepositoryProcessorFunc/Dockerfile
     image: repository-processor-func
     ports:
       - 7000:80
@@ -84,10 +87,11 @@ services:
       - MINIO_ACCESSKEY=minioadmin
       - MINIO_SECRETKEY=minioadmin
       - CODE_REPOSITORY=https://github.com/hetacode/heta-template-app-data.git
+      - POSTGRES_CONNECTIONSTRING=host=postgres;database=repository-func-commits-history;username=postgres;password=postgrespass
   template-processor-func:
     build:
-      context: src/TemplateProcessorFunc
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: src/TemplateProcessorFunc/Dockerfile
     image: template-processor-func
     ports:
       - 7001:80
@@ -95,6 +99,8 @@ services:
       - MINIO_ENDPOINT=minio:9000
       - MINIO_ACCESSKEY=minioadmin
       - MINIO_SECRETKEY=minioadmin
+      - POSTGRES_CONNECTIONSTRING=host=postgres;database=template-func-commits-history;username=postgres;password=postgrespass
+      - CODE_REPOSITORY=https://github.com/hetacode/heta-template-app-data.git
   input-processor-func:
     build:
       context: .

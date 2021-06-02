@@ -1,4 +1,4 @@
-CREATE DATABASE "repository-func-commits-history"
+CREATE DATABASE "template-func-commits-history"
     WITH 
     OWNER = postgres
     ENCODING = 'UTF8'
@@ -7,7 +7,7 @@ CREATE DATABASE "repository-func-commits-history"
     TABLESPACE = pg_default
     CONNECTION LIMIT = -1;
 
-\c "repository-func-commits-history";
+\c "template-func-commits-history";
 
 CREATE TABLE IF NOT EXISTS public.commits
 (
