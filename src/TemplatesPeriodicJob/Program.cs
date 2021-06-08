@@ -6,18 +6,17 @@ using TemplatesPeriodicJob.Jobs;
 
 var isKuberenetesMode = bool.Parse(Environment.GetEnvironmentVariable("KUBERNETES_MODE") ?? "false");
 
-
 if (isKuberenetesMode)
 {
-    // TODO: onetime executor - servcie should be run kubernetes cron job
     // https://kubernetes.io/docs/concepts/workloads/controllers/cron-jobs/
+    Console.WriteLine("k8s mode");
+    await (new UpdateTemplatesTriggerJob()).Execute(null);
 }
 else
 {
     Console.WriteLine("cron mode");
     await CronScheduler();
 }
-
 
 async Task CronScheduler()
 {
