@@ -2,7 +2,7 @@
 using System.Threading.Tasks;
 using Quartz;
 using Quartz.Impl;
-using TemplatesPeriodicJob.Jobs;
+using HttpPeriodicJob.Jobs;
 
 var isKuberenetesMode = bool.Parse(Environment.GetEnvironmentVariable("KUBERNETES_MODE") ?? "false");
 
@@ -10,7 +10,7 @@ if (isKuberenetesMode)
 {
     // https://kubernetes.io/docs/concepts/workloads/controllers/cron-jobs/
     Console.WriteLine("k8s mode");
-    await (new UpdateTemplatesTriggerJob()).Execute(null);
+    await (new UpdateHttpTriggerJob()).Execute(null);
 }
 else
 {
@@ -26,7 +26,7 @@ async Task CronScheduler()
 
     await scheduler.Start();
 
-    var job = JobBuilder.Create<UpdateTemplatesTriggerJob>().Build();
+    var job = JobBuilder.Create<UpdateHttpTriggerJob>().Build();
     var trigger = TriggerBuilder.Create().WithCronSchedule("0 0/1 * * * ?").StartNow().Build();
 
     await scheduler.ScheduleJob(job, trigger);
