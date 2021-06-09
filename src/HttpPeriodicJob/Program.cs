@@ -4,6 +4,7 @@ using Quartz;
 using Quartz.Impl;
 using HttpPeriodicJob.Jobs;
 
+var cron = Environment.GetEnvironmentVariable("KUBERNETES_MODE") ?? "0 0/1 * * * ?";
 var isKuberenetesMode = bool.Parse(Environment.GetEnvironmentVariable("KUBERNETES_MODE") ?? "false");
 
 if (isKuberenetesMode)
@@ -27,7 +28,7 @@ async Task CronScheduler()
     await scheduler.Start();
 
     var job = JobBuilder.Create<UpdateHttpTriggerJob>().Build();
-    var trigger = TriggerBuilder.Create().WithCronSchedule("0 0/1 * * * ?").StartNow().Build();
+    var trigger = TriggerBuilder.Create().WithCronSchedule(cron).StartNow().Build();
 
     await scheduler.ScheduleJob(job, trigger);
 

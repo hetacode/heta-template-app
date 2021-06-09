@@ -121,3 +121,25 @@ services:
       - MINIO_ENDPOINT=minio:9000
       - MINIO_ACCESSKEY=minioadmin
       - MINIO_SECRETKEY=minioadmin
+  http-periodic-job-base:
+    build:
+      context: src/HttpPeriodicJob/
+      dockerfile: Dockerfile
+    image: http-periodic-job
+    command: "true" 
+  templates-http-peridic-job:
+    image: http-periodic-job
+    depends_on:
+      - http-periodic-job-base
+    environment:
+      - HTTP_TRIGGER_URL=http://template-processor-func:80/api/TemplateProcessorFunc
+      - CRON="0 0/1 * * * ?"
+  repository-http-peridic-job:
+    image: http-periodic-job
+    depends_on:
+      - http-periodic-job-base
+      - templates-http-peridic-job
+    environment:
+      - HTTP_TRIGGER_URL=http://repository-processor-func:80/api/RepositoryProcessorFunc
+      - CRON="0 0/1 * * * ?"
+    
