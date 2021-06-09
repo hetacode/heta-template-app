@@ -47,14 +47,14 @@ namespace TemplateProcessorFunc
             {
                 Directory.Delete("repos", true);
             }
-            Repository.Clone(CodeRepository, "repos/");
+            Repository.Clone(CodeRepository, "repos/", new CloneOptions { BranchName = "master" });
             using var repo = new Repository("repos/.git");
             var storage = new MinioClient(MinioEndpoint, MinioAccessKey, MinioSecretKey);
 
             // When first checkout
             if (string.IsNullOrEmpty(lastCommit))
             {
-                lastCommit = repo.Head.Tip.Tree.Sha;
+                lastCommit = repo.Head.Tip.Sha;
 
                 var templatesDir = "repos/templates";
                 var files = Directory.GetFiles(templatesDir);
@@ -101,7 +101,10 @@ namespace TemplateProcessorFunc
                     }
                 }
 
-                await _context.Commits.AddAsync(new Models.Commit { RepoHash = repoHash, CommitHash = newestCommitHash, CreatedAt = DateTime.Now });
+                if (diffs.Count > 0)
+                {
+                    await _context.Commits.AddAsync(new Models.Commit { RepoHash = repoHash, CommitHash = newestCommitHash, CreatedAt = DateTime.Now });
+                }
             }
             await _context.SaveChangesAsync();
             await trans.CommitAsync();

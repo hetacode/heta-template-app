@@ -34,7 +34,7 @@ namespace TemplateProcessorFunc.Models
 
             modelBuilder.Entity<Commit>(entity =>
             {
-                entity.HasKey(e => e.RepoHash)
+                entity.HasKey(e => e.CommitHash)
                     .HasName("commits_pkey");
 
                 entity.ToTable("commits");

@@ -103,7 +103,10 @@ namespace RepositoryProcessorFunc
                             throw new Exception($"Unimplemented status {c.Status} - commit: {newestCommitHash}");
                     }
                 }
-                await _context.Commits.AddAsync(new Models.Commit { RepoHash = repoHash, CommitHash = newestCommitHash, CreatedAt = DateTime.Now });
+                if (diffs.Count > 0) 
+                {
+                    await _context.Commits.AddAsync(new Models.Commit { RepoHash = repoHash, CommitHash = newestCommitHash, CreatedAt = DateTime.Now });
+                }
             }
             await _context.SaveChangesAsync();
             await trans.CommitAsync();

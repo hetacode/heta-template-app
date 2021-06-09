@@ -11,10 +11,10 @@ CREATE DATABASE "template-func-commits-history"
 
 CREATE TABLE IF NOT EXISTS public.commits
 (
-    repo_hash character varying(65) COLLATE pg_catalog."default" NOT NULL,
     commit_hash character varying(50) COLLATE pg_catalog."default" NOT NULL,
+    repo_hash character varying(65) COLLATE pg_catalog."default" NOT NULL,
     created_at timestamp without time zone NOT NULL,
-    CONSTRAINT commits_pkey PRIMARY KEY (repo_hash)
+    CONSTRAINT commits_pkey PRIMARY KEY (commit_hash)
 )
 
 TABLESPACE pg_default;
