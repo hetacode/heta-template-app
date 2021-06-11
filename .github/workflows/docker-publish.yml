@@ -18,6 +18,7 @@ env:
   # github.repository as <account>/<repo>
   IMAGE_NAME: ${{ github.repository }}
   DOCKER_REPOSITORY: $REGISTRY/$IMAGE_NAME
+  DOCKER_T
 
 jobs:
   build:
@@ -43,4 +44,4 @@ jobs:
       
       - name: Build images
         run: |
-          docker-compose build -f docker-compose.build.yaml
+          docker-compose -f docker-compose.build.yaml build
