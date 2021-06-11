@@ -40,3 +40,7 @@ jobs:
           registry: ${{ env.REGISTRY }}
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
+      
+      - name: Build images
+        run: |
+          docker-compose build -f docker-compose.build.yaml
