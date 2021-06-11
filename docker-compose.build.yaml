@@ -1,0 +1,29 @@
+# hads - Heta Automator Distributed System
+version: "3.9"
+services:
+  repository-processor-func:
+    build:
+      context: .
+      dockerfile: src/RepositoryProcessorFunc/Dockerfile
+    image: ${DOCKER_REPOSITORY}/hads-repository-processor-func:${DOCKER_TAG}
+  template-processor-func:
+    build:
+      context: .
+      dockerfile: src/TemplateProcessorFunc/Dockerfile
+    image: ${DOCKER_REPOSITORY}/hads-template-processor-func:${DOCKER_TAG}
+  input-processor-func:
+    build:
+      context: .
+      dockerfile: src/InputProcessorFunc/Dockerfile
+    image: ${DOCKER_REPOSITORY}/hads-input-processor-func:${DOCKER_TAG}
+  profile-page-generator-func:
+    build:
+      context: .
+      dockerfile: src/ProfilePageGeneratorFunc/Dockerfile
+    image: ${DOCKER_REPOSITORY}/hads-profile-page-generator-func:${DOCKER_TAG}
+  http-periodic-job-base:
+    build:
+      context: src/HttpPeriodicJob/
+      dockerfile: Dockerfile
+    image: ${DOCKER_REPOSITORY}/hads-http-periodic-job:${DOCKER_TAG}
+    
