@@ -17,8 +17,8 @@ env:
   REGISTRY: ghcr.io
   # github.repository as <account>/<repo>
   IMAGE_NAME: ${{ github.repository }}
-  DOCKER_REPOSITORY: $REGISTRY/$IMAGE_NAME
-  DOCKER_T
+  DOCKER_REGISTRY: $REGISTRY/$IMAGE_NAME
+  DOCKER_TAG: ${{ github.run_number }}
 
 jobs:
   build:
@@ -41,7 +41,12 @@ jobs:
           registry: ${{ env.REGISTRY }}
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
-      
+          
+      - name: Replace tokens in build version docker-compose
+        uses: vafinvr/template-env-action@v2.0.1
+        with:
+          filename: docker-compose.build.yaml
+          
       - name: Build images
         run: |
           docker-compose -f docker-compose.build.yaml build
