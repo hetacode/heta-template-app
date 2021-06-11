@@ -1,9 +1,4 @@
-name: Docker build and push
-
-# This workflow uses actions that are not certified by GitHub.
-# They are provided by a third-party and are governed by
-# separate terms of service, privacy policy, and support
-# documentation.
+name: Build and push docker images
 
 on:
   workflow_dispatch:
@@ -21,8 +16,8 @@ env:
   DOCKER_TAG: ${{ github.run_number }}
 
 jobs:
-  build:
-
+  build_and_push:
+    name: Build and push to the Github Registry
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -35,14 +30,13 @@ jobs:
       # Login against a Docker registry except on PR
       # https://github.com/docker/login-action
       - name: Log into registry ${{ env.REGISTRY }}
-        if: github.event_name != 'pull_request'
         uses: docker/login-action@28218f9b04b4f3f62068d7b6ce6ca5b26e35336c
         with:
           registry: ${{ env.REGISTRY }}
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
-          
-      - name: Replace tokens in build version docker-compose
+
+      - name: Replace tokens inside build version of docker-compose
         uses: vafinvr/template-env-action@v2.0.1
         with:
           filename: docker-compose.build.yaml
@@ -50,3 +44,7 @@ jobs:
       - name: Build images
         run: |
           docker-compose -f docker-compose.build.yaml build
+      
+      - name: Push images to the Github Registry
+        run: |
+          docker-compose -f docker-compose.build.yaml push
