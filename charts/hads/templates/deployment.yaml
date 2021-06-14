@@ -1,0 +1,40 @@
+{{- range $function := .Values.functions }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ $function.name }}-deployment
+  namespace: {{ $.Release.Namespace }}
+spec:
+  {{- if $function.replicaCount }}
+  replicas: {{ $function.replicaCount }}
+  {{- end }}
+  selector:
+    matchLabels:
+      app: {{ $function.name }}-app
+  template:
+    metadata:
+      namespace: {{ $.Release.Namespace }}
+      labels:
+        app: {{ $function.name }}-app
+    spec:
+      restartPolicy: Always
+      containers:
+      - name: {{ $function.name }}-app
+        image: {{ $.Values.dockerRegistry }}/{{ $function.image }}:{{ $.Values.dockerTag}}
+        envFrom:
+        {{- if $function.configs }}
+        {{- range $config := $function.configs}}
+          - configMapRef:
+              name: {{ $config }}
+        {{- end }}
+        {{- end }}
+        resources:
+          limits:
+            memory: "128Mi"
+            cpu: "10m"
+        {{- if $function.port }}
+        ports:
+          - containerPort: {{ $function.port }}
+        {{- end }}
+{{ println "---" }}
+{{- end }}

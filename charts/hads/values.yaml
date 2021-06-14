@@ -1,0 +1,31 @@
+dockerRegistry: ghcr.io/hetacode/heta-template-app
+dockerTag: 7
+functions:
+  - name: repository-processor-func
+    image: repository-processor-func
+    port: 80
+    configs: ["minio-config", "inputs-repository-config", "db-config"]
+  - name: template-processor-func
+    image: hads-template-processor-func
+    port: 80
+    configs: ["minio-config", "templates-repository-config", "db-config"]
+  - name: input-processor-func
+    image: input-processor-func
+    configs: ["minio-config", "db-config", "kafka-config"]
+  - name: profile-page-generator-func
+    image: hads-profile-page-generator-func
+    replicaCount: 2
+    configs: ["minio-config", "db-config", "kafka-config"]
+jobs:      
+  - name: templates-http-peridic-job
+    image: hads-http-periodic-job
+    cron: "0 0/1 * * * ?"
+    environment:
+      - KUBERNETES_MODE=true
+      - HTTP_TRIGGER_URL=http://template-processor-func:80/api/TemplateProcessorFunc
+  - name: repository-http-peridic-job
+    image: hads-http-periodic-job
+    cron: "0 0/1 * * * ?"
+    environment:
+      - KUBERNETES_MODE=true
+      - HTTP_TRIGGER_URL=http://repository-processor-func:80/api/RepositoryProcessorFunc    

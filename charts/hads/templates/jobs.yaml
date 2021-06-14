@@ -1,0 +1,24 @@
+{{ range $job := .Values.jobs }}
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: {{ $job.name }}
+  namespace: {{ $.Release.Namespace }}
+spec:
+  schedule: {{ $job.cron }}
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          containers:
+          - name: {{ $job.name }}
+            image: {{ $job.image }}
+            imagePullPolicy: IfNotPresent
+            env:
+            {{- range $env := $job.environment -}}
+              {{- include "hads.env_variable" . | indent 14 }}
+            {{- end }}
+          restartPolicy: OnFailure
+          
+{{ println "---" }}          
+{{- end }}
