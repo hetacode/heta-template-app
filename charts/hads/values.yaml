@@ -16,19 +16,24 @@ functions:
     image: hads-profile-page-generator-func
     replicaCount: 2
     configs: ["minio-config", "db-config", "kafka-config"]
+services:
+  - name: repository-processor-svc
+    app: repository-processor-func
+  - name: template-processor-svc
+    app: template-processor-func
 jobs:      
-  - name: templates-http-peridic-job
+  - name: templates-http-periodic-job
     image: hads-http-periodic-job
     cron: "0 0/1 * * * ?"
     environment:
       - KUBERNETES_MODE=true
-      - HTTP_TRIGGER_URL=http://template-processor-func:80/api/TemplateProcessorFunc
-  - name: repository-http-peridic-job
+      - HTTP_TRIGGER_URL=http://template-processor-svc:80/api/TemplateProcessorFunc
+  - name: repository-http-periodic-job
     image: hads-http-periodic-job
     cron: "0 0/1 * * * ?"
     environment:
       - KUBERNETES_MODE=true
-      - HTTP_TRIGGER_URL=http://repository-processor-func:80/api/RepositoryProcessorFunc
+      - HTTP_TRIGGER_URL=http://repository-processor-svc:80/api/RepositoryProcessorFunc
 configs:
   - name: minio-config
     data:
