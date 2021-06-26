@@ -28,4 +28,22 @@ jobs:
     cron: "0 0/1 * * * ?"
     environment:
       - KUBERNETES_MODE=true
-      - HTTP_TRIGGER_URL=http://repository-processor-func:80/api/RepositoryProcessorFunc    
+      - HTTP_TRIGGER_URL=http://repository-processor-func:80/api/RepositoryProcessorFunc
+configs:
+  - name: minio-config
+    data:
+      MINIO_ENDPOINT: minio:9000
+      MINIO_ACCESSKEY: minioadmin
+      MINIO_SECRETKEY: minioadmin
+  - name: db-config
+    data:
+      POSTGRES_CONNECTIONSTRING: host=postgres;database=repository-func-commits-history;username=postgres;password=postgrespass
+  - name: kafka-config
+    data:
+      KAFKA_BROKERS: redpanda:29092
+  - name: inputs-repository-config
+    data:
+      CODE_REPOSITORY: https://github.com/hetacode/heta-template-app-data.git
+  - name: templates-repository-config
+    data:
+      CODE_REPOSITORY: https://github.com/hetacode/heta-template-app-data.git
