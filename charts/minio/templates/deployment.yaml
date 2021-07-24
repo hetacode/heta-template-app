@@ -1,0 +1,27 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: minio-app-deployment
+  namespace: {{ .Release.Namespace }}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: minio-app
+  template:
+    metadata:
+      namespace: {{ .Release.Namespace }}
+      labels:
+        app: minio-app
+    spec:
+      restartPolicy: Always
+      containers:
+        - name: minio
+          image: minio/minio:RELEASE.2021-06-17T00-10-46Z-28-gac7697426
+          command: ["/bin/sh"]
+          args:
+            - -c
+            - 'curl https://raw.githubusercontent.com/hetacode/tiny-battleship/master/wait-for-it.sh -o wait-for-it.sh && chmod +x wait-for-it.sh && ./wait-for-it.sh redpanda:9092 -- /usr/bin/docker-entrypoint.sh minio server /export --console-address ":9001"'
+          ports:
+            - containerPort: 9000
+            - containerPort: 9001

@@ -50,3 +50,5 @@ obj/
 
 .env
 out/
+
+metallb-values.yaml

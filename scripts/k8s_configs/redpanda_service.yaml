@@ -4,7 +4,7 @@ metadata:
   name: redpanda
 spec:
   selector:
-    app: redpanda-cluster
+    statefulset.kubernetes.io/pod-name: redpanda-cluster-0
   ports:
     - protocol: TCP
       name: kafka-api
