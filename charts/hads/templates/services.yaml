@@ -5,8 +5,9 @@ metadata:
   name: {{ $service.name }}
   namespace: {{ $.Release.Namespace }}
 spec:
+  type: ClusterIP
   selector:
-    app: {{ $service.app }}
+    app: {{ $service.app }}-app
   ports:
     - protocol: TCP
       port: 80

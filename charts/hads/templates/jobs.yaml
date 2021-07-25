@@ -5,14 +5,14 @@ metadata:
   name: {{ $job.name }}
   namespace: {{ $.Release.Namespace }}
 spec:
-  schedule: {{ $job.cron }}
+  schedule: {{ $job.cron | quote }}
   jobTemplate:
     spec:
       template:
         spec:
           containers:
           - name: {{ $job.name }}
-            image: {{ $job.image }}
+            image:  {{ $.Values.dockerRegistry }}/{{ $job.image }}:{{ $.Values.dockerTag}}
             imagePullPolicy: IfNotPresent
             env:
             {{- range $env := $job.environment -}}

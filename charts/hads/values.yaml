@@ -1,8 +1,8 @@
 dockerRegistry: ghcr.io/hetacode/heta-template-app
-dockerTag: 7
+dockerTag: 12
 functions:
   - name: repository-processor-func
-    image: repository-processor-func
+    image: hads-repository-processor-func
     port: 80
     configs: ["minio-config", "inputs-repository-config", "db-config"]
   - name: template-processor-func
@@ -10,7 +10,7 @@ functions:
     port: 80
     configs: ["minio-config", "templates-repository-config", "db-config"]
   - name: input-processor-func
-    image: input-processor-func
+    image: hads-input-processor-func
     configs: ["minio-config", "db-config", "kafka-config"]
   - name: profile-page-generator-func
     image: hads-profile-page-generator-func
@@ -24,20 +24,20 @@ services:
 jobs:      
   - name: templates-http-periodic-job
     image: hads-http-periodic-job
-    cron: "0 0/1 * * * ?"
+    cron: "*/1 * * * *"
     environment:
-      - KUBERNETES_MODE=true
-      - HTTP_TRIGGER_URL=http://template-processor-svc:80/api/TemplateProcessorFunc
+      - KUBERNETES_MODE="true"
+      - HTTP_TRIGGER_URL="http://template-processor-svc:80/api/TemplateProcessorFunc"
   - name: repository-http-periodic-job
     image: hads-http-periodic-job
-    cron: "0 0/1 * * * ?"
+    cron: "*/1 * * * *"
     environment:
-      - KUBERNETES_MODE=true
-      - HTTP_TRIGGER_URL=http://repository-processor-svc:80/api/RepositoryProcessorFunc
+      - KUBERNETES_MODE="true"
+      - HTTP_TRIGGER_URL="http://repository-processor-svc:80/api/RepositoryProcessorFunc"
 configs:
   - name: minio-config
     data:
-      MINIO_ENDPOINT: minio:9000
+      MINIO_ENDPOINT: minio-svc:9000
       MINIO_ACCESSKEY: minioadmin
       MINIO_SECRETKEY: minioadmin
   - name: db-config
@@ -45,7 +45,7 @@ configs:
       POSTGRES_CONNECTIONSTRING: host=postgres;database=repository-func-commits-history;username=postgres;password=postgrespass
   - name: kafka-config
     data:
-      KAFKA_BROKERS: redpanda:29092
+      KAFKA_BROKERS: redpanda:9092
   - name: inputs-repository-config
     data:
       CODE_REPOSITORY: https://github.com/hetacode/heta-template-app-data.git

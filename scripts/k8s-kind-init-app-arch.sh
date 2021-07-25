@@ -30,12 +30,6 @@ configInline:
 EOL
 helm install metallb metallb/metallb -f metallb-values.yaml --namespace metallb-system --create-namespace --wait
 
-# Wait for ready cert-manager-webhook pod
-# while [ "$(kubectl get pods -l=app='webhook' -o jsonpath='{.items[*].status.containerStatuses[0].ready}' -n cert-manager)" != "true" ]; do
-#    sleep 5
-#    echo "Waiting for Pod to be ready."
-# done
-
 # Redpanda
 # Install cluster operator
 kubectl apply \
@@ -55,5 +49,9 @@ kubectl apply \
   --wait \
   -f k8s_configs/redpanda_one_node_cluster.yaml \
   -f k8s_configs/redpanda_service.yaml
+
+helm install minio ../charts/minio -n hads-app --wait
+
+helm install hads-app ../charts/hads -n hads-app --wait
 
 echo "IP address: $KIND_K8S_IP"
